@@ -1,0 +1,15 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #CCC;
+    background-color: #1a1a1a;
+    margin: 20px;
+    padding: 20px;
+}
+
+a {
+    color: #0074D9;
+}
+
+a:visited {
+    color: #85144b;
+}
