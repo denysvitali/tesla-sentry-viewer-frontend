@@ -1,11 +1,24 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
-import { GetClipTitle, GetTS } from "../utils/ClipUtils";
+import { GetClipTitle, GetTS, GetEventTimeStamp } from "../utils/ClipUtils";
 import type { ClipResponse } from "@/types";
 import { API_ENDPOINT } from "@/utils/const";
 </script>
 
 <script lang="ts">
+const POSSIBLE_CAMERAS = [
+  "front",
+  "right_repeater",
+  "back",
+  "left_repeater",
+]
+const DEFAULT_CAMERA = "front";
+
+const CAMERA_LAYOUT = [
+  -1, 0, -1,
+  1, 2, 3,
+]
+
 export default {
   data() {
     return {
@@ -13,13 +26,15 @@ export default {
       videoSet: 0,
       maxVideoSet: 0,
       clipResponse: null as ClipResponse | null,
+      eventTs: new Date(0) as Date | null,
+      videoTime: 0,
     };
   },
 
   props: {},
   methods:{
     decreaseVideoSet(){
-      if(this.$data.videoSet > 0){
+      if(this.videoSet > 0){
         this.$data.videoSet--;
         this.reloadVideos();
       }
@@ -31,39 +46,115 @@ export default {
       }
     },
 
+    getVideoElement(cameraId: string) : HTMLVideoElement | null {
+      let cameraKey = `camera-${cameraId}`;
+      if(!POSSIBLE_CAMERAS.includes(cameraId)){
+        return null;
+      }
+      let videoRef = this.$refs[cameraKey] as Array<HTMLVideoElement>;
+      return videoRef[0];
+    },
+
     plus10s(){
-      let refVideo = this.$refs['camera-front'][0] as HTMLVideoElement;
+      let refVideo = this.getVideoElement("front") as HTMLVideoElement;
       let currentTime = refVideo.currentTime;
 
-      for(let camera of Object.keys(this.$data.clipResponse?.clipFiles)){
-          let video = this.$refs['camera-' + camera][0] as HTMLVideoElement;
+      for(let camera of POSSIBLE_CAMERAS) {
+          let video = this.getVideoElement(camera) as HTMLVideoElement;
           video.currentTime = currentTime + 10;
       }
     },
 
     minus10s(){
-      let refVideo = this.$refs['camera-front'][0] as HTMLVideoElement;
+      let refVideo = this.getVideoElement("front") as HTMLVideoElement;
       let currentTime = refVideo.currentTime;
 
-      for(let camera of Object.keys(this.$data.clipResponse?.clipFiles)){
-          let video = this.$refs['camera-' + camera][0] as HTMLVideoElement;
+      for(let camera of POSSIBLE_CAMERAS) {
+          let video = this.getVideoElement(camera) as HTMLVideoElement;
           video.currentTime = currentTime - 10;
       }
     },
 
     playAll(){
-      for(let camera of Object.keys(this.$data.clipResponse?.clipFiles)){
-          let video = this.$refs['camera-' + camera][0] as HTMLVideoElement;
+      for(let camera of POSSIBLE_CAMERAS) {
+          let video = this.getVideoElement(camera) as HTMLVideoElement;
           video.play();
       }
     },
 
     reloadVideos(){
-      for(let camera of Object.keys(this.$data.clipResponse?.clipFiles)){
-          let video = this.$refs['camera-' + camera][0] as HTMLVideoElement;
+      for(let camera of POSSIBLE_CAMERAS) {
+          let video = this.getVideoElement(camera) as HTMLVideoElement;
           video.load();
           video.play();
         }
+    },
+
+    updateTs(cameraId: string){
+      if(cameraId == DEFAULT_CAMERA){
+        let cameraVideo = this.getVideoElement(DEFAULT_CAMERA);
+        this.videoTime = cameraVideo?.currentTime!;
+      }
+    },
+
+    seeked(cameraId: string) {
+      if(cameraId != DEFAULT_CAMERA){
+        return;
+      }
+      let cameraVideo = this.getVideoElement(DEFAULT_CAMERA);
+      // Seek all videos
+      for(let camera of POSSIBLE_CAMERAS){
+        let video = this.getVideoElement(camera) as HTMLVideoElement;
+        if(camera == DEFAULT_CAMERA){
+          // Do not seek twice
+          continue;
+        }
+        video.currentTime = cameraVideo?.currentTime!;
+      }
+    },
+
+    setEventTime(){
+      // Given the Event Timestamp, we find the last clip that starts before that event, then we seek N seconds
+      // (difference between event timestamp and clip start time)
+
+      let lastKnownTS = GetTS(this.$data.clipResponse?.clipFiles[DEFAULT_CAMERA][0]!);
+      let videoSetId = 0;
+
+      for(let i=1; i<=this.$data.maxVideoSet; i++){
+        let clipId = this.$data.clipResponse?.clipFiles[DEFAULT_CAMERA][i]!;
+        let clipTS = GetTS(clipId);
+
+        if(clipTS!.getTime() > this.eventTs!.getTime()){
+          // Last known good clip is lastKnownTS
+          break
+        }
+        lastKnownTS = clipTS;
+        videoSetId = i;
+      }
+
+      let secDiff = Math.round( (this.eventTs!.getTime() - lastKnownTS!.getTime()) / 1000);
+      secDiff -= 3;
+      console.log(secDiff);
+      this.$data.videoSet = videoSetId;
+      this.reloadVideos();
+
+      for(let camera of POSSIBLE_CAMERAS){
+        let video = this.getVideoElement(camera) as HTMLVideoElement;
+        video.currentTime = Math.max(secDiff, 0);
+      }
+    },
+  },
+
+  computed: {
+    currentVideoTime(){
+      if(this.clipResponse == null){
+        return "";
+      }
+      let clipId = this.clipResponse?.clipFiles[DEFAULT_CAMERA][this.videoSet];
+      let ts = GetTS(clipId);
+
+      let newDate = new Date(ts.getTime() + this.videoTime * 1000);
+      return newDate.toString();
     }
   },
 
@@ -73,8 +164,10 @@ export default {
     this.$data.clipResponse = (await (
       await fetch(`${API_ENDPOINT}/api/v1/clips/${this.$data.id}`)
     ).json()) as ClipResponse;
-    this.$data.event_ts = GetTS(this.$data.id);
-    this.$data.maxVideoSet = this.clipResponse?.clipFiles["front"].length - 1;
+    console.log(this.$data.clipResponse.event.timestamp);
+    this.eventTs = GetEventTimeStamp(this.$data.clipResponse.event.timestamp);
+    console.log(this.eventTs);
+    this.$data.maxVideoSet = this.clipResponse!.clipFiles[DEFAULT_CAMERA].length - 1;
   },
 };
 </script>
@@ -83,7 +176,8 @@ export default {
   <main>
     <h3>Viewing {{ GetClipTitle(id) }}</h3>
 
-    <p>Timestamp: <span class="timestamp">XXX</span></p>
+    <p>Event Timestamp: {{ eventTs }}</p>
+    <p>Current Video Time: {{ currentVideoTime }}</p>
     <p>VideoSet: {{ videoSet }}</p>
 
     <button class="videoset-controller" @click="decreaseVideoSet">-</button>
@@ -92,26 +186,23 @@ export default {
     <button class="videoset-controller" @click="minus10s">-10s</button>
     <button class="videoset-controller" @click="plus10s">+10s</button>
     <button class="videoset-controller" @click="playAll">PLAY</button>
+    <button class="videoset-controller" @click="setEventTime">Set Event Time</button>
 
     <div class="camera-view-container" v-if="clipResponse != null">
       <div
         class="camera-view"
-        v-for="camera in [
-          'left_repeater',
-          'front',
-          'right_repeater',
-          '',
-          'back',
-          '',
-        ]"
+        v-for="camera in CAMERA_LAYOUT"
         v-bind:key="camera"
       >
         <video class="video-container" 
-        :ref="'camera-' + camera"
-        controls v-if="camera != ''">
+        :ref="`camera-${POSSIBLE_CAMERAS[camera]}`"
+        controls v-if="camera != -1"
+        v-on:timeupdate="updateTs(POSSIBLE_CAMERAS[camera])"
+        v-on:seeked="seeked(POSSIBLE_CAMERAS[camera])"
+        >
           <source
             :src="`${API_ENDPOINT}/api/v1/clips/${id}/${
-              clipResponse.clipFiles[camera][videoSet]
+              clipResponse.clipFiles[POSSIBLE_CAMERAS[camera]][videoSet]
             }`"
           />
         </video>
