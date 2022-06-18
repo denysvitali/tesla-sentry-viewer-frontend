@@ -1,7 +1,7 @@
 version: '3'
 services:
   frontend:
-    image: dvitali/tesla-sentry-viewer-frontend:44e68e9-dirty
+    image: dvitali/tesla-sentry-viewer-frontend:latest
     ports:
       - 3000:80
     environment:
