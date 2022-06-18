@@ -1,46 +1,73 @@
 # tesla-sentry-viewer-frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+A web interface to see your [Tesla](https://www.tesla.com/) [Sentry Mode](https://www.tesla.com/ownersmanual/model3/en_us/GUID-3C7A4D8B-2904-4093-9841-35596A110DE7.html) recordings on your computer.
 
-## Recommended IDE Setup
+![Viewing a single clip](./docs/example.jpg)
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.vscode-typescript-vue-plugin).
+## Getting Started
 
-## Type Support for `.vue` Imports in TS
+This project only takes care of being the frontend to [tesla-sentry-viewer](https://github.com/denysvitali/testla-sentry-viewer).
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
+To be able to see your Sentry clips on this web interface, you need to start the backend (tesla-sentry-viewer). There are multiple ways of doing that, but the easiest one is to use the pre-packaged Docker Images with `docker-compose`, so that you can run both the frontend _and_ the backend at the same time.
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
+## Using Docker-Compose
 
-1. Disable the built-in TypeScript Extension
-    1) Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-    2) Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+### Requirements
 
-## Customize configuration
+- Docker
+- `docker-compose`
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+### Starting the frontend
 
-## Project Setup
-
-```sh
-npm install
+```shell
+git clone https://github.com/denysvitali/tesla-sentry-viewer-frontend
+cd tesla-sentry-viewer-frontend
+docker-compose up -d
 ```
 
-### Compile and Hot-Reload for Development
 
-```sh
-npm run dev
+## Manually
+
+### Requirements
+
+- [`tesla-sentry-viewer`](https://github.com/denysvitali/tesla-sentry-viewer)
+- Node.js 18.x+ (even though any Node.js version >= 16.15 should work)
+- [Yarn](https://github.com/yarnpkg/yarn)
+- [pongo2-runner](https://github.com/swisscom/pongo2-runner) (for the config generation)
+
+### Starting the backend
+
+Start `tesla-sentry-viewer`:
+
+```shell
+tesla-sentry-viewer /run/media/$USER/TESLADRIVE/TeslaCam/SentryClips -l 0.0.0.0:8150
 ```
 
-### Type-Check, Compile and Minify for Production
+Confirm that the backend is working:
 
-```sh
-npm run build
+```
+curl -v http://127.0.0.1:8150/api/v1/clips | jq .
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+You should now see a list of clips:
 
-```sh
-npm run lint
+```json
+{
+  "events": [
+    "2022-06-18_12-00-00",
+    "2022-06-18_12-05-33"
+  ]
+}
 ```
+
+### Starting the frontend
+
+```shell
+yarn install
+# Generate the src/assets/config.json based on your environment variables:
+make config
+# Start the web app and listen on the default address, if available http://127.0.0.1:3000
+yarn run dev
+```
+
+Visit http://127.0.0.1:3000 and confirm that by visiting "Clips" you can see your clips.

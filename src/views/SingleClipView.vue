@@ -82,6 +82,13 @@ export default {
       }
     },
 
+    pauseAll(){
+      for(let camera of POSSIBLE_CAMERAS) {
+          let video = this.getVideoElement(camera) as HTMLVideoElement;
+          video.pause();
+      }
+    },
+
     reloadVideos(){
       for(let camera of POSSIBLE_CAMERAS) {
           let video = this.getVideoElement(camera) as HTMLVideoElement;
@@ -152,6 +159,9 @@ export default {
       }
       let clipId = this.clipResponse?.clipFiles[DEFAULT_CAMERA][this.videoSet];
       let ts = GetTS(clipId);
+      if(ts == null){
+        return "";
+      }
 
       let newDate = new Date(ts.getTime() + this.videoTime * 1000);
       return newDate.toString();
@@ -186,6 +196,7 @@ export default {
     <button class="videoset-controller" @click="minus10s">-10s</button>
     <button class="videoset-controller" @click="plus10s">+10s</button>
     <button class="videoset-controller" @click="playAll">PLAY</button>
+    <button class="videoset-controller" @click="pauseAll">PAUSE</button>
     <button class="videoset-controller" @click="setEventTime">Set Event Time</button>
 
     <div class="camera-view-container" v-if="clipResponse != null">

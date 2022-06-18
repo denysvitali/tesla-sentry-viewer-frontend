@@ -1,0 +1,19 @@
+version: '3'
+services:
+  frontend:
+    image: dvitali/tesla-sentry-viewer-frontend:44e68e9-dirty
+    ports:
+      - 3000:80
+    environment:
+      TESLA_SENTRY_VIEWER_BACKEND_ENDPOINT: http://127.0.0.1:8150
+
+  backend:
+    image: dvitali/tesla-sentry-viewer:latest
+    volumes:
+      - /run/media/$USER/TESLADRIVE:/mnt
+    ports:
+      - 8150:8150
+    command:
+      - -l 
+      - 0.0.0.0:8150
+      - "/mnt/TeslaCam/SentryClips"

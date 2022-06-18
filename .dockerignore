@@ -1,0 +1,7 @@
+/docs
+/.vscode
+/.git
+node_modules
+/Dockerfile
+/Makefile
+/docker-compose.yml
