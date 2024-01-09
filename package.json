@@ -10,6 +10,8 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@vue/language-core": "^1.8.27",
+    "@vue/typescript": "^1.8.20",
     "sass": "^1.51.0",
     "vue": "^3.2.33",
     "vue-router": "^4.0.14"

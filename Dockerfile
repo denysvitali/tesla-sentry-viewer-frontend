@@ -2,7 +2,7 @@ FROM node:lts AS builder
 COPY . /app
 WORKDIR /app
 RUN yarn install
-RUN yarn build
+RUN yarn run vite build
 
 FROM nginx:stable-alpine
 ARG PONGO2_RUNNER_VERSION=0.0.7
