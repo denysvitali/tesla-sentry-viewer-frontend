@@ -6,7 +6,7 @@ A web interface to see your [Tesla](https://www.tesla.com/) [Sentry Mode](https:
 
 ## Getting Started
 
-This project only takes care of being the frontend to [tesla-sentry-viewer](https://github.com/denysvitali/testla-sentry-viewer).
+This project only takes care of being the frontend to [tesla-sentry-viewer](https://github.com/denysvitali/tesla-sentry-viewer).
 
 To be able to see your Sentry clips on this web interface, you need to start the backend (tesla-sentry-viewer). There are multiple ways of doing that, but the easiest one is to use the pre-packaged Docker Images with `docker-compose`, so that you can run both the frontend _and_ the backend at the same time.
 
