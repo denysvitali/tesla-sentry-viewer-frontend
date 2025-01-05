@@ -42,7 +42,7 @@ You can now visit http://localhost:3000 and you should see your clips.
 - [`tesla-sentry-viewer`](https://github.com/denysvitali/tesla-sentry-viewer)
 - Node.js 18.x+ (even though any Node.js version >= 16.15 should work)
 - [Yarn](https://github.com/yarnpkg/yarn)
-- [pongo2-runner](https://github.com/swisscom/pongo2-runner) (for the config generation)
+- [envsubst](https://www.gnu.org/software/gettext/manual/html_node/envsubst-Invocation.html) (optional, you can simply create a `public/config.json` file instead)
 
 ### Starting the backend
 
@@ -70,6 +70,16 @@ You should now see a list of clips:
 ```
 
 ### Starting the frontend
+
+Create a configuration file for the frontend (`public/config.json`) as follows:
+
+```json
+{
+    "backendEndpoint": "http://127.0.0.1:8150"
+}
+```
+
+Then, start the frontend:
 
 ```shell
 yarn install
