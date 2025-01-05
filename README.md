@@ -17,13 +17,22 @@ To be able to see your Sentry clips on this web interface, you need to start the
 - Docker
 - `docker-compose`
 
-### Starting the frontend
+### Starting the frontend and the backend
 
-```shell
+```bash
 git clone https://github.com/denysvitali/tesla-sentry-viewer-frontend
 cd tesla-sentry-viewer-frontend
+```
+
+Make sure the path to your USB is correctly set in `docker-compose.yml`, by default this is `/run/media/$USER/TESLADRIVE` and we then use `TeslaCam/SentryClips` as the path to the clips.
+
+Once you have set the correct path, you can start the frontend and the backend with:
+
+```bash
 docker-compose up -d
 ```
+
+You can now visit http://localhost:3000 and you should see your clips.
 
 
 ## Manually
