@@ -1,5 +1,9 @@
 # tesla-sentry-viewer-frontend
 
+This is the source code for the [Tesla Sentry Viewer Frontend](https://denysvitali.github.io/tesla-sentry-viewer-frontend) web application.
+
+**The best way to get started is to open [https://denysvitali.github.io/tesla-sentry-viewer-frontend](https://denysvitali.github.io/tesla-sentry-viewer-frontend) and follow the instructions on how to set up the backend (running locally on your machine).**
+
 A web interface to see your [Tesla](https://www.tesla.com/) [Sentry Mode](https://www.tesla.com/ownersmanual/model3/en_us/GUID-3C7A4D8B-2904-4093-9841-35596A110DE7.html) recordings on your computer.
 
 ![Viewing a single clip](./docs/example.jpg)
